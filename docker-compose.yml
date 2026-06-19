@@ -34,7 +34,7 @@ services:
     environment:
       <<: *common-env
       PORT: 3001
-      DATABASE_URL: postgresql://postgres@postgres-user:5432/user_db
+      DATABASE_URL: postgresql://postgres:postgres@postgres-user:5432/user_db
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_me_refresh}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-google-client-id}
@@ -54,7 +54,7 @@ services:
     environment:
       <<: *common-env
       PORT: 3002
-      DATABASE_URL: postgresql://postgres@postgres-search:5432/search_db
+      DATABASE_URL: postgresql://postgres:postgres@postgres-search:5432/search_db
     depends_on:
       - postgres-search
       - redis
@@ -66,7 +66,7 @@ services:
     environment:
       <<: *common-env
       PORT: 3003
-      DATABASE_URL: postgresql://postgres@postgres-admin:5432/admin_db
+      DATABASE_URL: postgresql://postgres:postgres@postgres-admin:5432/admin_db
     depends_on:
       - postgres-admin
       - redis
@@ -78,7 +78,7 @@ services:
     environment:
       <<: *common-env
       PORT: 3004
-      DATABASE_URL: postgresql://postgres@postgres-booking:5432/booking_db
+      DATABASE_URL: postgresql://postgres:postgres@postgres-booking:5432/booking_db
       PAYMENT_SERVICE_URL: http://payment-service:3005
       INVENTORY_SERVICE_URL: http://inventory-service:3006
     depends_on:
@@ -92,7 +92,7 @@ services:
     environment:
       <<: *common-env
       PORT: 3005
-      DATABASE_URL: postgresql://postgres@postgres-payment:5432/payment_db
+      DATABASE_URL: postgresql://postgres:postgres@postgres-payment:5432/payment_db
     depends_on:
       - postgres-payment
       - redis
@@ -104,7 +104,7 @@ services:
     environment:
       <<: *common-env
       PORT: 3006
-      DATABASE_URL: postgresql://postgres@postgres-inventory:5432/inventory_db
+      DATABASE_URL: postgresql://postgres:postgres@postgres-inventory:5432/inventory_db
     depends_on:
       - postgres-inventory
       - redis
@@ -116,7 +116,7 @@ services:
     environment:
       <<: *common-env
       PORT: 3007
-      DATABASE_URL: postgresql://postgres@postgres-notification:5432/notification_db
+      DATABASE_URL: postgresql://postgres:postgres@postgres-notification:5432/notification_db
     depends_on:
       - postgres-notification
       - redis
