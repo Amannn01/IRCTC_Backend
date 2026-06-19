@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TrainInventory {
+  id              String   @id @default(uuid())
+  trainId         String
+  journeyDate      DateTime
+  coachCode        String
+  seatNumber       String
+  classCode        String
+  isBooked         Boolean  @default(false)
+  bookingId        String?
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+
+  @@unique([trainId, journeyDate, coachCode, seatNumber])
+  @@index([trainId, journeyDate, classCode])
+}
+
+model SeatLock {
+  id              String   @id @default(uuid())
+  trainId         String
+  journeyDate     DateTime
+  seatNumber      String
+  sagaId          String
+  lockedUntil     DateTime
+  createdAt       DateTime @default(now())
+
+  @@unique([trainId, journeyDate, seatNumber])
+  @@index([sagaId])
+}

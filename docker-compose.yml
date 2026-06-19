@@ -1,0 +1,254 @@
+
+x-common-env: &common-env
+  KAFKA_BROKERS: kafka:9092
+  REDIS_URL: redis://redis:6379
+
+x-node-service: &node-service
+  restart: unless-stopped
+  networks:
+    - irctc-net
+  depends_on:
+    - redis
+    - kafka
+
+services:
+  api-gateway:
+    <<: *node-service
+    build: ./services/api-gateway
+    environment:
+      <<: *common-env
+      PORT: 3000
+      USER_SERVICE_URL: http://user-service:3001
+      SEARCH_SERVICE_URL: http://search-service:3002
+      ADMIN_SERVICE_URL: http://admin-service:3003
+      BOOKING_SERVICE_URL: http://booking-service:3004
+      PAYMENT_SERVICE_URL: http://payment-service:3005
+      INVENTORY_SERVICE_URL: http://inventory-service:3006
+      NOTIFICATION_SERVICE_URL: http://notification-service:3007
+    ports:
+      - "3000:3000"
+
+  user-service:
+    <<: *node-service
+    build: ./services/user-service
+    environment:
+      <<: *common-env
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres-user:5432/user_db
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_me_refresh}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-google-client-id}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-google-client-secret}
+      SMTP_HOST: ${SMTP_HOST:-smtp.example.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-mailer-user}
+      SMTP_PASS: ${SMTP_PASS:-mailer-pass}
+    depends_on:
+      - postgres-user
+      - redis
+      - kafka
+
+  search-service:
+    <<: *node-service
+    build: ./services/search-service
+    environment:
+      <<: *common-env
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:postgres@postgres-search:5432/search_db
+    depends_on:
+      - postgres-search
+      - redis
+      - kafka
+
+  admin-service:
+    <<: *node-service
+    build: ./services/admin-service
+    environment:
+      <<: *common-env
+      PORT: 3003
+      DATABASE_URL: postgresql://postgres:postgres@postgres-admin:5432/admin_db
+    depends_on:
+      - postgres-admin
+      - redis
+      - kafka
+
+  booking-service:
+    <<: *node-service
+    build: ./services/booking-service
+    environment:
+      <<: *common-env
+      PORT: 3004
+      DATABASE_URL: postgresql://postgres:postgres@postgres-booking:5432/booking_db
+      PAYMENT_SERVICE_URL: http://payment-service:3005
+      INVENTORY_SERVICE_URL: http://inventory-service:3006
+    depends_on:
+      - postgres-booking
+      - redis
+      - kafka
+
+  payment-service:
+    <<: *node-service
+    build: ./services/payment-service
+    environment:
+      <<: *common-env
+      PORT: 3005
+      DATABASE_URL: postgresql://postgres:postgres@postgres-payment:5432/payment_db
+    depends_on:
+      - postgres-payment
+      - redis
+      - kafka
+
+  inventory-service:
+    <<: *node-service
+    build: ./services/inventory-service
+    environment:
+      <<: *common-env
+      PORT: 3006
+      DATABASE_URL: postgresql://postgres:postgres@postgres-inventory:5432/inventory_db
+    depends_on:
+      - postgres-inventory
+      - redis
+      - kafka
+
+  notification-service:
+    <<: *node-service
+    build: ./services/notification-service
+    environment:
+      <<: *common-env
+      PORT: 3007
+      DATABASE_URL: postgresql://postgres:postgres@postgres-notification:5432/notification_db
+    depends_on:
+      - postgres-notification
+      - redis
+      - kafka
+
+  postgres-user:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg-user:/var/lib/postgresql/data
+    networks:
+      - irctc-net
+
+  postgres-search:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: search_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg-search:/var/lib/postgresql/data
+    networks:
+      - irctc-net
+
+  postgres-admin:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: admin_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg-admin:/var/lib/postgresql/data
+    networks:
+      - irctc-net
+
+  postgres-booking:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg-booking:/var/lib/postgresql/data
+    networks:
+      - irctc-net
+
+  postgres-payment:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg-payment:/var/lib/postgresql/data
+    networks:
+      - irctc-net
+
+  postgres-inventory:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg-inventory:/var/lib/postgresql/data
+    networks:
+      - irctc-net
+
+  postgres-notification:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg-notification:/var/lib/postgresql/data
+    networks:
+      - irctc-net
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    restart: unless-stopped
+    networks:
+      - irctc-net
+    volumes:
+      - redis-data:/data
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - irctc-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - irctc-net
+
+volumes:
+  pg-user:
+  pg-search:
+  pg-admin:
+  pg-booking:
+  pg-payment:
+  pg-inventory:
+  pg-notification:
+  redis-data:
+
+networks:
+  irctc-net:
+    driver: bridge

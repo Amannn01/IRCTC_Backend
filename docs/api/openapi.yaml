@@ -1,0 +1,116 @@
+openapi: 3.0.3
+info:
+  title: IRCTC Reservation Backend API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Gateway health check
+      responses:
+        "200":
+          description: Healthy
+  /auth/register:
+    post:
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "201":
+          description: Registered
+  /auth/login:
+    post:
+      summary: Login with email/password
+      responses:
+        "200":
+          description: JWT issued
+  /auth/refresh:
+    post:
+      summary: Refresh JWT access token
+      responses:
+        "200":
+          description: New access token issued
+  /auth/verify-otp:
+    post:
+      summary: Verify OTP sent by email
+      responses:
+        "200":
+          description: OTP verified
+  /auth/google:
+    post:
+      summary: Google OAuth sign-in
+      responses:
+        "200":
+          description: OAuth login successful
+  /search/trains:
+    get:
+      summary: Search trains
+      parameters:
+        - in: query
+          name: source
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: destination
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matching trains
+  /bookings:
+    post:
+      summary: Create booking request (Saga starts)
+      security:
+        - bearerAuth: []
+      responses:
+        "202":
+          description: Booking accepted for processing
+  /bookings/{id}/cancel:
+    post:
+      summary: Cancel booking
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Booking cancellation processed
+  /payments:
+    post:
+      summary: Initiate payment
+      security:
+        - bearerAuth: []
+      responses:
+        "202":
+          description: Payment initiated
+  /admin/trains:
+    post:
+      summary: Create train (Admin role only)
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Train created
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
