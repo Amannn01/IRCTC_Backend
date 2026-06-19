@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Station {
+  id        String     @id @default(uuid())
+  code      String     @unique
+  name      String
+  city      String
+  state     String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  stops     TrainStop[]
+}
+
+model Train {
+  id             String      @id @default(uuid())
+  trainNumber    String      @unique
+  name           String
+  totalCoaches   Int
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  stops          TrainStop[]
+}
+
+model TrainStop {
+  id            String   @id @default(uuid())
+  trainId       String
+  stationId     String
+  arrivalTime   String?
+  departureTime String?
+  sequence      Int
+  distanceKm    Int
+  train         Train    @relation(fields: [trainId], references: [id], onDelete: Cascade)
+  station       Station  @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@unique([trainId, sequence])
+  @@index([stationId])
+}
