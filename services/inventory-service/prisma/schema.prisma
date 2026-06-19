@@ -9,7 +9,7 @@ datasource db {
 
 model TrainInventory {
   id              String   @id @default(uuid())
-  trainId          String
+  trainId         String
   journeyDate      DateTime
   coachCode        String
   seatNumber       String
