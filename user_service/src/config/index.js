@@ -29,7 +29,10 @@ const config = {
     OTP_TTL: Number(process.env.OTP_TTL) ,
     OTP_RATE_MAX_PER_HOUR: Number(process.env.OTP_RATE_MAX_PER_HOUR) ,
     OTP_MAX_VERIFY_ATTEMPTS: Number(process.env.OTP_MAX_VERIFY_ATTEMPTS) ,
-    OTP_HMAC_SECRET: process.env.OTP_HMAC_SECRET
+    OTP_HMAC_SECRET: process.env.OTP_HMAC_SECRET,
+
+    Google_Client_secret: process.env.Google_Client_secret,
+    Google_Client_id: process.env.Google_Client_id,
 
 }
 
